@@ -158,7 +158,7 @@ def create_interface():
         sc = Scrollbar(v)
         sc.pack(side=RIGHT, fill=Y)
         text_panel = Text(v)
-        text_panel.insert(INSERT, "Generando texto...")
+        text_panel.insert(INSERT, "Problema al generar el texto. Revise que todos los campos han sido rellenados correctamente")
         text_panel.pack()
         
         mode = value_char_or_word.get()
@@ -236,30 +236,8 @@ def create_interface():
 def main():
     create_interface()
     
-    # args = sys.argv[1:]
-    # model   = tf.keras.models.load_model(args[2])
-    # wp = args[3].lower() == "true"
-    # n_units = int(args[4])
-    # temp = float(args[5])
-    # initial_text = "".join([ word+" " for word in args[6:]])
-    # print("Texto inicial: \n",initial_text)
- 
-    # #word a word
-    # if args[0] == "1":
 
-    #     vocab,_ = load_word2vec(args[1])
-    #     text = generate_word(initial_text,vocab,model,n_units,wp,temp)
-    #     print(text.numpy())
-
-        
-    # #char a char
-    # elif args[0] == "0":
-    #     vocab = load_vocab(args[1])
-    #     text = generate_char(initial_text,vocab,model,n_units,wp,temp)
-    #     print(text.numpy())
 
 if __name__ == "__main__":
     main()  
 
-#python generar_textos.py 0 models/vocab_all_np.txt models/char_tg_all_wpFalse_n250_l1_rFalse_dFalse_e250 False 250 1 I went to the city
-#python generar_textos.py 1 w2v_wp_dim100_w6_e15 models/word_tg_skyrim_w2v6_wpTrue_ws6_n250_l1_rl2_d0.1 True 50 0.8 The dragon of Winterhold
