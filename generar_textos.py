@@ -14,6 +14,7 @@ import sys
 from string import punctuation
 import tensorflow as tf
 from random import choice
+from tkinter import *
 
 tf.get_logger().setLevel('ERROR')
 
@@ -147,31 +148,118 @@ def generate_word(initial_text,vocab,generator,n_words,wp,temp,greedy=False):
 
     return initial_text  
 
-def main():
-    args = sys.argv[1:]
-    model   = tf.keras.models.load_model(args[2])
-    wp = args[3].lower() == "true"
-    n_units = int(args[4])
-    temp = float(args[5])
-    initial_text = "".join([ word+" " for word in args[6:]])
-    print("Texto inicial: \n",initial_text)
- 
-    #word a word
-    if args[0] == "1":
 
-        vocab,_ = load_word2vec(args[1])
-        text = generate_word(initial_text,vocab,model,n_units,wp,temp)
-        print(text.numpy())
+
+def create_interface():
+    
+    def call_generate_text():
+        v = Toplevel()
+        v.title("Texto generado")
+        sc = Scrollbar(v)
+        sc.pack(side=RIGHT, fill=Y)
+        text_panel = Text(v)
+        text_panel.insert(INSERT, "Generando texto...")
+        text_panel.pack()
+        
+        mode = value_char_or_word.get()
+        generator = tf.keras.models.load_model(value_generator.get())
+        wp = 1 == value_wp.get()
+        num_units = int(value_num.get())
+        temp = float(value_temp.get())
+        initial_text = value_text.get()
+        if mode: #palabra
+            vocab,_ = load_word2vec(value_vocab.get())
+            generated_text = generate_word(initial_text, vocab, generator, num_units, wp, temp)
+        else:    #caracter
+            vocab = load_vocab(value_vocab.get())
+            generated_text = generate_char(initial_text, vocab, generator, num_units, wp, temp)
+        
+        generated_text = generated_text.numpy().decode("utf-8")
+        
+        text_panel.delete("1.0", END)
+        text_panel.insert(INSERT,generated_text)
 
         
-    #char a char
-    elif args[0] == "0":
-        vocab = load_vocab(args[1])
-        text = generate_char(initial_text,vocab,model,n_units,wp,temp)
-        print(text.numpy())
+    root = Tk()
+    
+    root.title("Generador de Textos")
+    
+   
+    label_char_or_word = Label(root,text="Modo de generación: ")
+    value_char_or_word = IntVar() #0 caracteres | 1 palabras
+    spinbox_char_or_word1 = Radiobutton(root,text="Carácter a carácter",
+                                    variable=value_char_or_word,value=0)
+    spinbox_char_or_word2 = Radiobutton(root,text="Palabra a palabra",
+                                    variable=value_char_or_word,value=1)
+    label_char_or_word.grid(row=0,column=0)
+    spinbox_char_or_word1.grid(row=0,column=1)
+    spinbox_char_or_word2.grid(row=1,column=1)
+    
+    
+    label_vocab = Label(root, text = "Ruta del vocabulario / modelo word2vec: ")
+    value_vocab = Entry(root)
+    label_vocab.grid(row=2,column=0)
+    value_vocab.grid(row=2,column=1)
+    
+    label_generator = Label(root, text = "Ruta del modelo generador: ")
+    value_generator = Entry(root)
+    label_generator.grid(row=3,column=0)
+    value_generator.grid(row=3,column=1)
+    
+    label_wp = Label(root, text= "Generación con signos de puntuación: ")
+    value_wp = IntVar() #0 np | 1 wp
+    checkbutton_wp = Checkbutton(root,text="Activado",variable=value_wp,
+                                 onvalue=1,offvalue=0)
+    label_wp.grid(row=4,column=0)
+    checkbutton_wp.grid(row=4,column=1)
+    
+    label_num = Label(root, text= "Número de unidades a generar: ")
+    value_num = Entry(root)
+    label_num.grid(row=5,column=0)
+    value_num.grid(row=5,column=1)
+    
+    label_temp = Label(root, text="Factor temperatura utilizado durante el muestreo: ")
+    value_temp = Entry(root)
+    label_temp.grid(row=6,column=0)
+    value_temp.grid(row=6,column=1)
+    
+    label_text = Label(root,text="Texto inicial: ")
+    value_text = Entry(root)
+    label_text.grid(row=7,column=0)
+    value_text.grid(row=7,column=1)
+    
+    submit_btn = Button(root,text="Generar texto",command= call_generate_text)
+    submit_btn.grid(row=8,column=1)
+    
+    root.mainloop()
+
+def main():
+    create_interface()
+    
+    # args = sys.argv[1:]
+    # model   = tf.keras.models.load_model(args[2])
+    # wp = args[3].lower() == "true"
+    # n_units = int(args[4])
+    # temp = float(args[5])
+    # initial_text = "".join([ word+" " for word in args[6:]])
+    # print("Texto inicial: \n",initial_text)
+ 
+    # #word a word
+    # if args[0] == "1":
+
+    #     vocab,_ = load_word2vec(args[1])
+    #     text = generate_word(initial_text,vocab,model,n_units,wp,temp)
+    #     print(text.numpy())
+
+        
+    # #char a char
+    # elif args[0] == "0":
+    #     vocab = load_vocab(args[1])
+    #     text = generate_char(initial_text,vocab,model,n_units,wp,temp)
+    #     print(text.numpy())
 
 if __name__ == "__main__":
     main()  
 
 #python generar_textos.py 0 models/vocab_all_np.txt models/char_tg_all_wpFalse_n250_l1_rFalse_dFalse_e250 False 250 1 I went to the city
-#python generar_textos.py 1 w2v_wp_dim100_w2_e30 models/word_tg_skyrim_w2v2_wpTrue_ws6_n250_l1_rl2_dFalse True 50 0.8 The dragon of Winterhold
+#python generar_textos.py 1 w2v_wp_dim100_w6_e15 models/word_tg_skyrim_w2v6_wpTrue_ws6_n250_l1_rl2_d0.1 True 50 0.8 The dragon of Winterhold
